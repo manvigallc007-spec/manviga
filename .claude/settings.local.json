@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(powershell.exe -NoProfile -Command \"echo $env:ANTHROPIC_API_KEY\")",
+      "Bash(.venv/Scripts/python.exe -c \":*)",
+      "Bash(powershell -Command \":*)",
+      "Bash(python instagram-posting/src/run_pipeline.py)",
+      "Bash(cmd.exe /c \"schtasks /create /tn \"\"TheAIChronicle_HourlyPost\"\" /tr \"\"\\\\\"\"C:\\\\Users\\\\sport\\\\Manviga\\\\.venv\\\\Scripts\\\\python.exe\\\\\"\" \\\\\"\"C:\\\\Users\\\\sport\\\\Manviga\\\\instagram-posting\\\\src\\\\run_pipeline.py\\\\\"\"\"\" /sc hourly /mo 1 /st 00:07 /ru \"\"%USERNAME%\"\" /f\")",
+      "Bash(powershell -Command \"Get-ScheduledTask -TaskName ''TheAIChronicle_YouTube_HourlyPost'' | Select-Object -ExpandProperty Triggers\")"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\sport\\.claude\\projects\\c--Users-sport-Manviga\\memory"
+    ]
+  }
+}

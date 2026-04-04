@@ -1,0 +1,32 @@
+{
+  "project": "youtube-posting",
+  "geographic_mix": {
+    "usa": {
+      "percentage": 25,
+      "target_count": 2,
+      "description": "United States content"
+    },
+    "india": {
+      "percentage": 25,
+      "target_count": 2,
+      "description": "India content"
+    },
+    "europe": {
+      "percentage": 25,
+      "target_count": 2,
+      "description": "Europe content"
+    },
+    "asia_pacific": {
+      "percentage": 15,
+      "target_count": 1,
+      "description": "Asia Pacific content"
+    },
+    "rest_of_world": {
+      "percentage": 10,
+      "target_count": 1,
+      "description": "International content"
+    }
+  },
+  "total_videos": 8,
+  "notes": "YouTube geographic mix - customized for video platform audience distribution"
+}

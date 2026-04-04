@@ -1,0 +1,30 @@
+# Secrets & credentials
+.env
+credentials/
+**/credentials/
+**/client_secret.json
+**/token.json
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+
+# Generated output (large media files)
+youtube-improve/output/
+youtube-posting/output/
+instagram-posting/output/
+**/output/
+logs/
+**/logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+*.code-workspace
+.vscode/

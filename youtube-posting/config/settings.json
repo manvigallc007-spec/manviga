@@ -1,0 +1,7 @@
+{
+  "project": "youtube-posting",
+  "api_endpoint": "https://www.googleapis.com/youtube/v3",
+  "max_retries": 3,
+  "timeout": 30,
+  "output_format": "json"
+}

@@ -1,0 +1,27 @@
+{
+  "project": "instagram-posting",
+  "geographic_mix": {
+    "usa": {
+      "percentage": 30,
+      "target_count": 3,
+      "description": "United States content"
+    },
+    "india": {
+      "percentage": 30,
+      "target_count": 3,
+      "description": "India content"
+    },
+    "china": {
+      "percentage": 20,
+      "target_count": 2,
+      "description": "China content"
+    },
+    "rest_of_world": {
+      "percentage": 20,
+      "target_count": 2,
+      "description": "International content"
+    }
+  },
+  "total_stories": 10,
+  "notes": "Instagram geographic mix - hard requirement for content balance"
+}

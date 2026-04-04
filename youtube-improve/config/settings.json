@@ -1,0 +1,14 @@
+{
+  "project": "youtube-improve",
+  "video_duration_target": 300,
+  "stories_per_video": 5,
+  "max_retries": 3,
+  "timeout": 30,
+  "output_format": "json",
+  "video_width": 1920,
+  "video_height": 1080,
+  "fps": 30,
+  "tts_voice": "en-IN-PrabhatNeural",
+  "tts_rate": "+15%",
+  "tts_pitch": "+5Hz"
+}

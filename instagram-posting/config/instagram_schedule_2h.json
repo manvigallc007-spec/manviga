@@ -1,0 +1,32 @@
+{
+  "name": "Instagram 2-Hour Posting Schedule",
+  "description": "Posts content every 2 hours during active window",
+  "interval_hours": 2,
+  "active_hours": {
+    "start": 9,
+    "end": 23,
+    "timezone": "UTC"
+  },
+  "posting_times": [
+    "09:00",
+    "11:00",
+    "13:00",
+    "15:00",
+    "17:00",
+    "19:00",
+    "21:00"
+  ],
+  "retry_policy": {
+    "max_retries": 3,
+    "retry_delay_seconds": 60
+  },
+  "content_rotation": {
+    "geography": ["usa", "india", "china", "rest_of_world"],
+    "use_round_robin": true
+  },
+  "notifications": {
+    "enabled": true,
+    "log_file": "logs/scheduler.log",
+    "email_on_failure": false
+  }
+}

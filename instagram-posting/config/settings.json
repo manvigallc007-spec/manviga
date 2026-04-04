@@ -1,0 +1,7 @@
+{
+  "project": "instagram-posting",
+  "api_endpoint": "https://api.instagram.com",
+  "max_retries": 3,
+  "timeout": 30,
+  "output_format": "json"
+}

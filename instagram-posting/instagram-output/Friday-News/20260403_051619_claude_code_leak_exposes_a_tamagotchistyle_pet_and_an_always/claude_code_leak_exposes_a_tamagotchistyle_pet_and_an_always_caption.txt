@@ -1,0 +1,11 @@
+🚀 Claude Code leak exposes a Tamagotchi-style ‘pet’ and an always-on agent.
+
+After Anthropic released Claude Code's 2.1.88 update, users quickly discovered that it contained a package with a source map file containing its TypeScript codebase, with one
+
+Sector: AI.
+
+The AI space moves fast — stay ahead. 👇
+
+#ClaudeCode #AI #TechNews #AINews #TheAIChronicle #DailyAINews #AI #ArtificialIntelligence #Tech
+
+Source: https://www.google.com/search?q=Claude+Code+leak+exposes+a

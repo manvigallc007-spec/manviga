@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(powershell.exe -NoProfile -Command \"Get-Command uv -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source\")",
+      "Bash(powershell.exe -NoProfile -Command \"cd C:\\\\Users\\\\sport\\\\Manviga; uv add openpyxl\")",
+      "Bash(.venv/Scripts/python.exe approval_popup.py)",
+      "Read(//c/Users/sport/ai-reels/**)",
+      "Bash(.venv/Scripts/python.exe ai_news_reel_generator.py)",
+      "Bash(python instagram-posting/src/master_post_v2.py)",
+      "Bash(ls -t c:/Users/sport/Manviga/instagram-posting/output/*.png)",
+      "Bash(python video_generator.py)",
+      "Bash(powershell -Command \":*)",
+      "Bash(python -c \":*)",
+      "Bash(python youtube-improve/src/run_pipeline.py)",
+      "Bash(python test_template.py)",
+      "Bash(ls /tmp/*.jpg /tmp/*.png /tmp/*.jpeg /tmp/*.webp)",
+      "Read(//c/Users/sport/Manviga/youtube-improve/$TEMP/**)",
+      "Read(//c/Users/sport/AppData/Local/Temp/**)",
+      "Bash(.venv/Scripts/python.exe -c ':*)",
+      "Bash(.venv/Scripts/python.exe youtube-improve/src/run_pipeline.py --generate-only --region india)",
+      "Bash(\"c:/Users/sport/Manviga/.venv/Scripts/python.exe\" src/run_pipeline.py --generate-only)",
+      "Bash(.venv/Scripts/python.exe instagram-posting/src/run_pipeline.py)",
+      "Bash(.venv/Scripts/python.exe instagram-posting/src/run_pipeline.py --generate-only)"
+    ]
+  }
+}

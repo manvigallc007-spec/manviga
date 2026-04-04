@@ -1,0 +1,108 @@
+{
+  "project": "instagram-posting",
+  "schedule_name": "instagram_2hour_automated",
+  "enabled": true,
+  "description": "Automated Instagram posting every 2 hours with geographic mix compliance",
+  
+  "schedule": {
+    "frequency": "every 2 hours",
+    "interval_hours": 2,
+    "interval_minutes": 120,
+    "start_time": "09:00",
+    "end_time": "23:00",
+    "timezone": "UTC",
+    "days": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+  },
+  
+  "tasks": [
+    {
+      "task_id": 1,
+      "name": "Generate AI News Reel",
+      "description": "Generate 10 AI news stories with geographic mix compliance",
+      "command": "python src/main.py --generate",
+      "output_dir": "output/",
+      "log_file": "logs/generation_{timestamp}.log",
+      "timeout_seconds": 300,
+      "required": true,
+      "order": 1
+    },
+    {
+      "task_id": 2,
+      "name": "Post to Instagram",
+      "description": "Upload reel to Instagram with auto-approval",
+      "command": "python src/poster.py --auto-approve",
+      "output_dir": "output/",
+      "log_file": "logs/posting_{timestamp}.log",
+      "timeout_seconds": 180,
+      "required": true,
+      "order": 2,
+      "on_failure": "log_and_continue"
+    },
+    {
+      "task_id": 3,
+      "name": "Log Geographic Breakdown",
+      "description": "Record geographic distribution metrics",
+      "command": "python src/logger.py --geo-breakdown",
+      "output_dir": "output/",
+      "log_file": "logs/geo_breakdown_{timestamp}.log",
+      "timeout_seconds": 60,
+      "required": false,
+      "order": 3
+    }
+  ],
+  
+  "geographic_mix": {
+    "usa": {
+      "percentage": 30,
+      "target_count": 3
+    },
+    "india": {
+      "percentage": 30,
+      "target_count": 3
+    },
+    "china": {
+      "percentage": 20,
+      "target_count": 2
+    },
+    "rest_of_world": {
+      "percentage": 20,
+      "target_count": 2
+    }
+  },
+  
+  "execution_history": [
+    {
+      "execution_id": "exec_001",
+      "timestamp": "2026-03-29T09:00:00Z",
+      "status": "scheduled",
+      "tasks_completed": 0,
+      "next_execution": "2026-03-29T11:00:00Z"
+    }
+  ],
+  
+  "notifications": {
+    "on_success": {
+      "enabled": true,
+      "type": "log",
+      "message": "Instagram posting cycle completed successfully"
+    },
+    "on_failure": {
+      "enabled": true,
+      "type": "log",
+      "message": "Instagram posting cycle failed - check logs"
+    }
+  },
+  
+  "retry_policy": {
+    "max_retries": 3,
+    "backoff_multiplier": 2,
+    "initial_delay_seconds": 60
+  },
+  
+  "monitoring": {
+    "track_geographic_compliance": true,
+    "track_posting_metrics": true,
+    "track_api_performance": true,
+    "save_metrics_to": "output/metrics_{date}.json"
+  }
+}
