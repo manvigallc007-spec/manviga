@@ -1,0 +1,45 @@
+{
+  "project": "will-ai-take-my-job",
+  "show_name": "The AI Chronicle: Editors View",
+  "episode_title": "Will AI Take My Job?",
+  "brand": "The AI Chronicle",
+  "platform": "YouTube Long-Form",
+  "runtime_target": "6:00",
+  "resolution": "1920x1080",
+  "thumbnail_resolution": "1280x720",
+  "voice": {
+    "accent": "American Indian",
+    "pace_wpm": 160,
+    "tone": "calm, clear, slightly faster — engaging editor style",
+    "tts_engine": "edge-tts",
+    "tts_params": { "rate": "+12%", "pitch": "+0Hz" }
+  },
+  "audio": {
+    "music": "low ambient synth, slow tempo, no percussion — matches narration pace",
+    "music_duck_db": -14,
+    "sfx": "subtle whoosh on scene transitions only",
+    "music_note": "Intro: 'In this weekly AI Chronicle — Will AI Take My Job — Editors View' — slow background music"
+  },
+  "visual": {
+    "style": "futuristic, minimal, clean — dark navy base, high-contrast fonts",
+    "accent_color_a": "#00D2FF",
+    "accent_color_b": "#D264FF",
+    "background": "#080C1C",
+    "scrim_left_alpha": 200,
+    "no_faces": true,
+    "no_text_in_images": true,
+    "font_contrast": "white and cyan on dark — maximum readability"
+  },
+  "slides": 12,
+  "slide_breakdown": {
+    "0": "Intro / Thumbnail — show name + hook",
+    "1-10": "Content slides — 10 scenes covering topic depth",
+    "11": "Branding outro — That's a Wrap, logo, avatar, subscribe"
+  },
+  "animation_intro": {
+    "duration_seconds": 10,
+    "fps": 25,
+    "frames": 250
+  },
+  "status": "ready-for-generation"
+}

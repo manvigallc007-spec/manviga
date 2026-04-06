@@ -82,6 +82,11 @@ OUTRO_TEXT = (
     "Hit like, subscribe, and the notification bell for daily AI news. "
     "See you tomorrow."
 )
+SUPPORT_TEXT = (
+    "Enjoying The AI Chronicle? Please like, follow, subscribe, comment and share. "
+    "Help us make AI knowledge reachable for more people. "
+    "Your support helps us produce better quality news every day."
+)
 
 # Layout Y positions
 Y_HEADER   = 72    # header bar bottom
@@ -569,7 +574,7 @@ def render_story_slide(draw, img, story, theme, fonts, date_str,
 
     # Auto-size base font to fit in 2 lines
     hook_font = fonts["h88"]
-    for fk in ["h88", "h72", "h64", "h56", "h48"]:
+    for fk in ["h88", "h72", "h64", "h56", "h48", "h44", "h40", "h36"]:
         fnt = fonts[fk]
         if len(wrap_text(hook_text, fnt, W - PAD * 2, draw)) <= 2:
             hook_font = fnt
@@ -601,7 +606,11 @@ def render_story_slide(draw, img, story, theme, fonts, date_str,
                         base_color, hero_color):
         """Render one hook line word-by-word; hero words are bigger + accent coloured."""
         line_h = max(_th(draw, "A", base_font), _th(draw, "A", hero_font))
+        right_limit = W - PAD
         for word in text.split():
+            word_w = _tw(draw, word, hero_font if word.strip(".,!?:;()-") in hero_words else base_font)
+            if x + word_w > right_limit:
+                break   # never draw a word that starts beyond the safe right edge
             clean = word.strip(".,!?:;()-")
             is_hero = clean in hero_words
             f     = hero_font if is_hero else base_font
@@ -613,7 +622,8 @@ def render_story_slide(draw, img, story, theme, fonts, date_str,
             x += _tw(draw, word + " ", f)
         return line_h
 
-    lines = wrap_text(hook_text, hook_font, W - PAD * 2, draw)[:2]
+    # Wrap using hero_font (worst-case width) so hero words never overflow right edge
+    lines = wrap_text(hook_text, hero_font, W - PAD * 2, draw)[:2]
 
     # Measure total block height for vertical centering in hook zone
     _line_h = max(_th(draw, "A", hook_font), _th(draw, "A", hero_font))
@@ -705,14 +715,22 @@ def render_story_slide(draw, img, story, theme, fonts, date_str,
 
     # Stat value overlaid on image/card
     sv      = story["stat_value"]
-    sv_font = fonts["stat_large"] if _tw(draw, sv, fonts["stat_large"]) < card_w - 40 else fonts["stat_med"]
+    sv_font = fonts["stat_large"]
+    for _sv_fk in ("stat_large", "stat_med", "bold38", "bold28"):
+        if _tw(draw, sv, fonts[_sv_fk]) <= card_w - 40:
+            sv_font = fonts[_sv_fk]
+            break
     sv_w    = _tw(draw, sv, sv_font)
     sv_y    = card_y + 30
     # Shadow for contrast
     draw.text((card_x + (card_w - sv_w) // 2 + 4, sv_y + 4), sv, font=sv_font, fill=(0, 0, 0))
     draw.text((card_x + (card_w - sv_w) // 2, sv_y), sv, font=sv_font, fill=theme["accent"])
 
-    sl   = story["stat_label"]
+    sl = story["stat_label"]
+    while sl and _tw(draw, sl, fonts["bold28"]) > card_w - 20:
+        sl = sl[:-1]
+    if sl != story["stat_label"]:
+        sl = sl.rstrip() + "\u2026"
     sl_w = _tw(draw, sl, fonts["bold28"])
     sl_y = sv_y + _th(draw, sv, sv_font) + 10
     draw.text((card_x + (card_w - sl_w) // 2 + 2, sl_y + 2), sl, font=fonts["bold28"], fill=(0, 0, 0))
@@ -728,7 +746,7 @@ def render_story_slide(draw, img, story, theme, fonts, date_str,
     cy       = content_y
     txt_max  = left_w - PAD
     # Hard bottom boundary — never draw below the stories strip
-    bottom_y = Y_STRIP - 10
+    bottom_y = Y_CTA - 10   # full content area — strip is not drawn on story slides
 
     # ── Font aliases for this section ──
     _lbl_fn  = fonts["sec_label"]   # arialbd 46px  — header label + arrow
@@ -768,7 +786,9 @@ def render_story_slide(draw, img, story, theme, fonts, date_str,
             x += r * 2 + 14
         draw.text((x + 2, cy + 2), label, font=_lbl_fn, fill=(0, 0, 0))
         draw.text((x, cy),         label, font=_lbl_fn, fill=color)
-        cy += _th(draw, label, _lbl_fn) + 8   # tight bottom padding
+        cy += _th(draw, label, _lbl_fn) + 24
+        if cy > bottom_y:
+            cy = bottom_y
 
     def _bullet(text, color):
         """Single-line arrow bullet — punchy fact."""
@@ -790,7 +810,9 @@ def render_story_slide(draw, img, story, theme, fonts, date_str,
         draw.text((bx, cy + arr_dy),          arrow, font=_lbl_fn,  fill=color)
         draw.text((bx + arrow_w + 2, cy + 2), line,  font=_body_fn, fill=(0, 0, 0))
         draw.text((bx + arrow_w, cy),          line,  font=_body_fn, fill=(255, 255, 255))
-        cy += lh + 8   # tighter bullet spacing
+        cy += lh + 20
+        if cy > bottom_y:
+            cy = bottom_y
 
     def _para(text, color, max_lines=1):
         """Paragraph — fills remaining space after gap calculation."""
@@ -804,7 +826,7 @@ def render_story_slide(draw, img, story, theme, fonts, date_str,
             lh = _th(draw, line, _sm_fn)
             draw.text((PAD + 26, cy + 2), line, font=_sm_fn, fill=(0, 0, 0))
             draw.text((PAD + 24, cy),     line, font=_sm_fn, fill=color)
-            cy += lh + 10
+            cy += lh + 16
 
     import re as _re
 
@@ -823,9 +845,9 @@ def render_story_slide(draw, img, story, theme, fonts, date_str,
             _bullet(b, theme["accent"])
 
     # ── Distribute remaining space evenly between WHY and WHAT'S NEXT ──
-    # Match the +8 and +10 spacing used in _section_header and _para
-    _lh_hdr = _th(draw, "Ag", _lbl_fn) + 8    # header height  (matches +8 in _section_header)
-    _lh_sm  = _th(draw, "Ag", _sm_fn)  + 10   # para line height (matches +10 in _para)
+    # Match the updated spacing used in _section_header and _para
+    _lh_hdr = _th(draw, "Ag", _lbl_fn) + 24   # header height  (matches +24 in _section_header)
+    _lh_sm  = _th(draw, "Ag", _sm_fn)  + 16   # para line height (matches +16 in _para)
 
     # Each of the 2 sections uses: header + 1 para line
     # Remaining budget: split equally into 2 gaps
@@ -1184,6 +1206,42 @@ def render_outro_slide(stories, date_str, fonts):
     return img
 
 
+def _render_support_slide(date_str, fonts):
+    theme = STORY_THEMES[5]   # indigo night — dark professional
+    img   = Image.new("RGB", (W, H), theme["bg1"])
+    draw_gradient_rect(img, (0, 0, W, H), theme["bg1"], theme["bg2"], "vertical")
+    img  = _draw_bg_texture(img, theme, seed=55)
+    img  = draw_glow(img, (W // 2, H // 2), 550, theme["accent"], intensity=0.12)
+    draw = ImageDraw.Draw(img)
+    _draw_header(draw, img, theme, fonts, date_str, 0, 0)
+    _draw_cta_bar(draw, img, theme, fonts)
+
+    content = [
+        (180,  "SUPPORT THE SHOW",                                    "h80",    (255, 255, 255)),
+        (310,  "Please Like  \u00b7  Follow  \u00b7  Subscribe",      "h52",    theme["accent"]),
+        (390,  "Comment  \u00b7  Share",                              "h52",    theme["accent"]),
+        (490,  "Help us make AI knowledge reachable for more people.", "h32",    theme["text_color"]),
+        (542,  "Your support helps us produce better quality news.",   "h32",    theme["text_color"]),
+    ]
+    for y, text, fk, color in content:
+        fnt = fonts.get(fk, fonts["h44"])
+        tw  = _tw(draw, text, fnt)
+        _draw_text_shadow(draw, ((W - tw) // 2, y), text, fnt, color)
+
+    # Accent divider below title
+    draw.line([(W // 2 - 320, 272), (W // 2 + 320, 272)], fill=theme["accent"], width=3)
+
+    # Logo
+    logo = _load_logo(size=(80, 80))
+    if logo:
+        lx = (W - 80) // 2
+        try:
+            img.paste(logo, (lx, 610), logo if logo.mode == "RGBA" else None)
+        except Exception:
+            img.paste(logo, (lx, 610))
+    return img
+
+
 # ─────────────────────────────────────────────
 # VIDEO COMPOSITION
 # ─────────────────────────────────────────────
@@ -1381,6 +1439,16 @@ def generate(stories: list) -> dict:
 
         png_paths.append(s_png); tts_paths.append(s_tts); durations.append(dur)
         logger.info(f"  Duration: {dur:.1f}s  score={story['score']['total']}  [{story['region_name']}]")
+
+    # ── SUPPORT SLIDE ──────────────────────────────────────────
+    logger.info("[SLIDE] Rendering support slide...")
+    support_png = temp_dir / "98_support.png"
+    support_tts = temp_dir / "98_support.mp3"
+    _render_support_slide(date_str, fonts).save(str(support_png))
+    generate_story_tts({"tts_script": SUPPORT_TEXT, "headline": "Support"}, support_tts)
+    support_dur = max(get_audio_duration(support_tts), 8.0)
+    png_paths.append(support_png); tts_paths.append(support_tts); durations.append(support_dur)
+    logger.info(f"[SUPPORT] Duration: {support_dur:.1f}s")
 
     # ── OUTRO ──────────────────────────────────────────────────
     logger.info("[SLIDE] Rendering outro slide...")

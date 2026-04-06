@@ -47,7 +47,7 @@ Story details:
   Headline: [PASTE HEADLINE]
   Source URL: [PASTE URL]
   Key stat: [e.g. "$5B funding" or "94% accuracy"]
-  Summary: [2-3 sentence summary]
+  Summary: [3-4 sentence summary]
 
 Please:
 1. Format this into a valid story dict matching the structure in

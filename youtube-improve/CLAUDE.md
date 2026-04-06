@@ -1,5 +1,5 @@
 # The AI Chronicle — YouTube Improve Pipeline
-## CLAUDE.md — Last updated: 2026-03-31
+## CLAUDE.md — Last updated: 2026-04-04
 
 Automated daily AI news video pipeline for **@theaichronicle007**.
 10 geo-balanced AI stories → 1920×1080 video (~6 min) → YouTube upload.
@@ -89,6 +89,15 @@ Geographic quota enforced: **3 USA · 3 India · 2 China · 2 ROW**
 
 Fallback: `FALLBACK_STORIES` (10 hardcoded stories) used if fewer than 8 live articles found.
 
+**AI-only filter rules (strict):**
+- Story must have ≥1 AI keyword in the **title** itself — OR ≥2 AI keywords in title+summary
+- This prevents non-AI stories (sports, crime, politics) from slipping through feeds like SCMP or Inc42
+- Same-event dedup: stories sharing the same company name + dollar figure are treated as one event — only the first/highest-scored kept (eliminates Anthropic $400M appearing 3×)
+
+**India AI ecosystem terms in keyword list:**
+- Haptik, Uniphore, Sarvam, Krutrim, Bhashini, AIRaWAT, Indic LLM, NASSCOM AI, MEITY AI, IIT AI, Zoho AI, TCS AI, etc.
+- India feed override threshold raised to 2 USA markers (was 1) — reduces false re-assignments
+
 Requires `feedparser>=6.0.0` — install with:
 ```bash
 pip install -r requirements.txt
@@ -99,9 +108,10 @@ pip install -r requirements.txt
 ## Slide Design — Story Slides (1920×1080)
 
 **Left column (text)**
-- Hook: large ALL CAPS headline
-- What Happened: 3 bullet points (Georgia Bold 44px)
+- Hook: large ALL CAPS headline — wrapped using hero_font width (20% larger) so no word is clipped
+- What Happened: up to 3 bullet points (Georgia Bold 44px)
 - Why It Matters + What's Next (Georgia 40px)
+- Content area bottom = Y_CTA - 10 (full height to CTA bar, not capped at Y_STRIP)
 
 **Right column**
 - Full-bleed background image card with rounded mask and dark overlay
@@ -172,4 +182,4 @@ OAuth scopes: `youtube.upload` + `youtube`
 | `feedparser not found` | `pip install feedparser` |
 | Too few AI stories | Feeds may be slow — fallback stories will be used automatically |
 | ffmpeg not found | Install via winget: `winget install Gyan.FFmpeg` |
-| UnicodeEncodeError in console | Expected on Windows cp1252 — log file has full Unicode output |
+| UnicodeEncodeError in console | Expected on Windows cp1252 — log file has full Unicode output

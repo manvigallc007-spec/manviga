@@ -1,0 +1,30 @@
+{
+  "title": "Will AI Take My Job? | The AI Chronicle: Editors View",
+  "description": "Millions of people are asking whether AI will replace their jobs. In this episode of The AI Chronicle — Editors View, we break it down in plain language.\n\nWe look at how real jobs are changing — the engineer, the architect, the lawyer, and the teacher — and what that means for you.\n\nTopics covered:\n- Why AI takes tasks, not whole jobs\n- How engineer, architect, lawyer, and teacher roles are shifting\n- Role exposure ranges: which parts of your job are most at risk\n- Reskilling: what to learn and where to start\n- A simple 3-step action plan you can use today\n\nSubscribe to The AI Chronicle for weekly AI insights.",
+  "tags": [
+    "will AI take my job", "AI and jobs 2026", "future of work AI",
+    "AI job impact", "AI reskilling", "AI Chronicle", "editors view",
+    "AI engineer", "AI lawyer", "AI teacher", "AI architect",
+    "AI automation", "knowledge worker AI", "AI upskilling",
+    "artificial intelligence jobs", "AI career", "AI workforce 2026"
+  ],
+  "category": "Science & Technology",
+  "language": "en",
+  "channel": "@theaichronicle007",
+  "show": "The AI Chronicle: Editors View",
+  "thumbnail_text": "WILL AI TAKE MY JOB?",
+  "publish_status": "draft",
+  "provenance": {
+    "source_briefing": "prepare-prompt.txt",
+    "quotes_used": [
+      "In 2026, the global conversation around AI has shifted from 'What is it?' to 'How do we live with it.'"
+    ],
+    "role_data_sources": [
+      "McKinsey AI workforce research 2024-2026",
+      "World Economic Forum Future of Jobs Report 2025",
+      "Goldman Sachs AI impact analysis"
+    ],
+    "speculative_claims": "none — all points framed as directional trends with stated ranges",
+    "safety_check": "pending"
+  }
+}

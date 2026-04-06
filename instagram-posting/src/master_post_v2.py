@@ -447,9 +447,11 @@ def generate_post(story, bg_image_path=None):
         _draw_background(img, d, BG_GENS[b_idx], ac, rng)
     d = ImageDraw.Draw(img)
 
-    # ── Faded watermark ───────────────────────────────────────────
+    # ── Faded watermark — prefer explicit watermark, then stat_value, then company keyword
     wm_font = get_font(180, bold=True)
-    wm_text = story.get('watermark', 'AI')[:10]
+    _wm_raw = (story.get('watermark') or story.get('stat_value') or
+               story.get('company', 'NEWS').split('/')[0].strip())
+    wm_text = _wm_raw[:10]
     wm_w    = text_width(d, wm_text, wm_font)
     wm_h    = text_height(d, wm_text, wm_font)
     wm_ov   = Image.new("RGBA", img.size, (0, 0, 0, 0))
@@ -566,15 +568,19 @@ def generate_post(story, bg_image_path=None):
                          radius=14, fill=rgb(stat_bg))
     d.rounded_rectangle([stat_box_x, cy, stat_box_x + stat_box_w, stat_box_y2],
                          radius=14, outline=ac, width=3)
-    # Stat label
-    stat_label = story['stat_label'][:30]
-    draw_centered(d, cy + 12, stat_label, ac, get_font(20), W)
-    # Stat value — auto-size to fit box width
-    sv_font = get_font(64, bold=True)
+    # Stat label — larger, uppercase, clearly readable
+    stat_label = story['stat_label'][:30].upper()
+    draw_centered(d, cy + 10, stat_label, ac, get_font(24, bold=True), W)
+    # Thin separator between label and value
+    sep_y = cy + 40
+    d.line([(stat_box_x + 40, sep_y), (stat_box_x + stat_box_w - 40, sep_y)],
+           fill=(*ac, 80), width=1)
+    # Stat value — auto-size to fit box width, positioned below separator
+    sv_font = get_font(68, bold=True)
     sv_text = story['stat_value'][:12]
-    while text_width(d, sv_text, sv_font) > stat_box_w - 24 and sv_font.size > 30:
+    while text_width(d, sv_text, sv_font) > stat_box_w - 24 and sv_font.size > 32:
         sv_font = get_font(sv_font.size - 4, bold=True)
-    draw_centered(d, cy + 38, sv_text, rgb(hl_c), sv_font, W)
+    draw_centered(d, sep_y + 6, sv_text, rgb(hl_c), sv_font, W)
     cy = stat_box_y2 + Z_STAT_GAP
 
     # Source line — clamped to stay above footer
@@ -698,12 +704,20 @@ def generate_reel(png_path, audio_path, post_dir, slug):
         "-i", png_path,
         "-i", audio_path,
         "-c:v", "libx264",
+        "-preset", "slow",          # better compression quality
+        "-crf", "17",               # near-lossless (lower = higher quality; was unset ~23)
+        "-profile:v", "high",
+        "-level:v", "4.1",
         "-tune", "stillimage",
+        "-b:v", "8M",               # 8 Mbps target — sharp on large screens
+        "-maxrate", "12M",
+        "-bufsize", "24M",
         "-c:a", "aac",
-        "-b:a", "192k",
+        "-b:a", "256k",             # higher audio bitrate (was 192k)
         "-pix_fmt", "yuv420p",
-        "-shortest",          # video ends exactly when audio ends — no hard cut
-        "-vf", "scale=1080:1080",
+        "-movflags", "+faststart",  # web-optimised — metadata at front
+        "-shortest",                # video ends exactly when audio ends
+        "-vf", "scale=1080:1080:flags=lanczos",   # lanczos for sharper upscale
         str(mp4_path)
     ]
     result = subprocess.run(cmd, capture_output=True, text=True)

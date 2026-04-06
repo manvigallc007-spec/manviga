@@ -6,6 +6,6 @@
     "china": {"percentage": 20, "candidate_count": 2, "min_in_final": 1},
     "row":   {"percentage": 20, "candidate_count": 2, "min_in_final": 0}
   },
-  "total_candidates": 10,
-  "final_stories": 5
+  "total_candidates": 20,
+  "final_stories": 20
 }

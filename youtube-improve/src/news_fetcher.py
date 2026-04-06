@@ -81,7 +81,29 @@ AI_KEYWORDS = {
     "perplexity", "mistral ai", "grok", "xai", "cohere",
     "ai-powered", "ai powered", "ai tool", "ai platform", "ai solution",
     "robotics", "automation ai", "agentic", "agi",
+    # India AI ecosystem
+    "haptik", "uniphore", "sigtuple", "niramai", "artivatic", "reverie",
+    "nasscom ai", "meity ai", "niti aayog ai", "india ai mission",
+    "gen ai india", "iit ai", "iisc ai", "tata ai", "jio ai",
+    "zoho ai", "freshworks ai", "infosys ai", "wipro ai", "tcs ai",
+    "ola electric ai", "flipkart ai", "paytm ai", "zomato ai",
+    "bhashini", "jugalbandi", "airawat", "indic llm",
 }
+
+# Pre-compiled title-match pattern.
+# Short single-word keywords (≤5 chars): full \b..\b to prevent "agi" → "tyagi".
+# Longer single-word keywords (>5 chars): leading \b only — allows plurals/suffixes
+#   so "transformer" matches "Transformers", "model" matches "modeling", etc.
+# Multi-word keywords: plain substring match (already specific enough).
+_AI_KW_TITLE_RE = re.compile(
+    "|".join(
+        (r"\b" + re.escape(kw) + r"\b") if (" " not in kw and len(kw) <= 5)
+        else (r"\b" + re.escape(kw))     if " " not in kw
+        else re.escape(kw)
+        for kw in AI_KEYWORDS
+    ),
+    re.IGNORECASE,
+)
 
 KNOWN_COMPANIES = [
     "OpenAI", "Google", "DeepMind", "Anthropic", "Meta", "Microsoft",
@@ -154,9 +176,9 @@ def _detect_region(title: str, summary: str, feed_region: str) -> str:
             return "china"
         if india == best_score and feed_region != "india":
             return "india"
-    # Single strong USA/China signal is enough if feed said india
-    if usa >= 1 and china == 0 and india == 0 and feed_region == "india":
-        return "row"   # global story picked up by Indian feed
+    # Two strong USA signals required before overriding an India feed tag
+    if usa >= 2 and china == 0 and india == 0 and feed_region == "india":
+        return "row"   # clearly global story on Indian feed
     return feed_region
 
 IMPACT_WORDS  = {"billion", "million", "launches", "raises", "beats", "surpasses",
@@ -242,19 +264,49 @@ def _extract_company(title: str, source: str) -> str:
     return source[:22]
 
 
-def _extract_stat(text: str):
-    """Return (stat_value, stat_label) from text, or ('AI', 'Sector')."""
+def _extract_stat(text: str, story_body: list = None):
+    """Return (stat_value, stat_label) from text (and optional body lines).
+    Never returns the uninformative ('AI', 'Sector') fallback."""
     patterns = [
         (r'\$(\d+\.?\d*\s*[BMT]illion)', "Funding Amount"),
         (r'(\d+\.?\d*%)',                "Key Metric"),
         (r'(\d[\d,]+\+?\s*(?:users|developers|companies|jobs))', "Reach"),
         (r'\$(\d+[BMK]\+?)',             "Value"),
+        (r'\b(\d{1,3}(?:\.\d+)?[xX])\b', "Multiplier"),
     ]
+    # Step 1: numeric pattern in headline/summary
     for pattern, label in patterns:
         m = re.search(pattern, text, re.IGNORECASE)
         if m:
             return m.group(1)[:12], label
-    return "AI", "Sector"
+    # Step 2: numeric pattern in body sentences
+    if story_body:
+        combined = " ".join(story_body)
+        for pattern, label in patterns:
+            m = re.search(pattern, combined, re.IGNORECASE)
+            if m:
+                return m.group(1)[:12], label
+    # Step 3: category keyword → meaningful short fact
+    hl = text.lower()
+    category_map = [
+        (["raises", "funding", "million", "billion", "invest"],  "FUNDING",   "NEW DEAL"),
+        (["launches", "release", "new model", "unveils"],        "LAUNCH",    "NEW RELEASE"),
+        (["regulation", "law", "ban", "policy", "govern"],       "POLICY",    "REGULATION"),
+        (["research", "paper", "study", "discovers", "finding"], "RESEARCH",  "DISCOVERY"),
+        (["acqui", "merger", "buys", "purchase"],                "M&A",       "ACQUISITION"),
+        (["partner", "collab", "alliance", "deal"],              "DEAL",      "PARTNERSHIP"),
+        (["first", "record", "breakthrough", "milestone"],       "MILESTONE", "BREAKTHROUGH"),
+    ]
+    for keywords, stat_val, stat_label in category_map:
+        if any(kw in hl for kw in keywords):
+            return stat_val, stat_label
+    # Step 4: first significant capitalised word from title
+    stop = {"a", "an", "the", "to", "of", "in", "is", "are", "and", "for",
+            "with", "on", "at", "by"}
+    words = [w.strip(".,!?") for w in text.split() if len(w) > 3 and w.lower() not in stop]
+    if words:
+        return words[0][:10].upper(), "KEY UPDATE"
+    return "UPDATE", "AI NEWS"
 
 
 def _extract_keywords(title: str) -> list:
@@ -514,10 +566,11 @@ SKIP_TITLE_PATTERNS = [
 ]
 
 def _is_ai_relevant(title: str, summary: str) -> bool:
-    text = (title + " " + summary).lower()
+    """Story must have an AI keyword in the TITLE to be accepted.
+    Uses word-boundary matching for single-word keywords so 'agi' doesn't match 'tyagi'."""
     if any(re.search(p, title, re.IGNORECASE) for p in SKIP_TITLE_PATTERNS):
         return False
-    return any(kw in text for kw in AI_KEYWORDS)
+    return bool(_AI_KW_TITLE_RE.search(title))
 
 
 def _normalize_title(title: str) -> str:
@@ -537,6 +590,61 @@ def _deduplicate(items: list, posted_headlines: list) -> list:
         seen_titles.add(tl)
         out.append(item)
     return out
+
+
+def _cap_per_company(items: list, max_per: int = 2) -> list:
+    """Keep at most max_per stories per company. Highest-scored kept first."""
+    sorted_items = sorted(items, key=lambda x: x.get("score", {}).get("total", 0), reverse=True)
+    seen: dict = {}
+    result = []
+    for item in sorted_items:
+        co = _extract_company(item["title"], item.get("source", "")).lower()
+        if seen.get(co, 0) < max_per:
+            result.append(item)
+            seen[co] = seen.get(co, 0) + 1
+    return result
+
+
+def _dedup_same_event(items: list) -> list:
+    """Remove stories about the same real-world event.
+    Two stories are the same event if they share the same company token AND
+    the same normalised dollar/number figure in their titles.
+    Normalises: $400M = $400 million = 400 million = 400m  →  '400m'."""
+    _all_markers = _USA_MARKERS | _INDIA_MARKERS | _CHINA_MARKERS
+
+    _unit_map = {"million": "m", "billion": "b", "trillion": "t",
+                 "m": "m", "b": "b", "k": "k", "t": "t"}
+
+    def _amounts(title: str):
+        tl = title.lower()
+        found = set()
+        # Pattern: optional $, digits, optional commas/dots, then unit word or letter
+        for m in re.finditer(
+            r'\$?([\d,]+\.?\d*)\s*(million|billion|trillion|[mbkt])\b', tl
+        ):
+            num  = m.group(1).replace(",", "")
+            unit = _unit_map.get(m.group(2), m.group(2)[0])
+            found.add(f"{num}{unit}")
+        return found
+
+    def _cos(title: str):
+        tl = title.lower()
+        return {m for m in _all_markers if len(m) > 4 and m in tl}
+
+    kept = []
+    for item in items:
+        amts   = _amounts(item["title"])
+        cos    = _cos(item["title"])
+        is_dup = False
+        for k in kept:
+            k_amts = _amounts(k["title"])
+            k_cos  = _cos(k["title"])
+            if amts and k_amts and amts & k_amts and cos and k_cos and cos & k_cos:
+                is_dup = True
+                break
+        if not is_dup:
+            kept.append(item)
+    return kept
 
 
 # ─────────────────────────────────────────────
@@ -561,7 +669,7 @@ def _item_to_story(item: dict, story_index: int = 0) -> dict:
     hook = title.upper()
 
     sentences = _split_sentences(summary)
-    stat_value_early, stat_label_early = _extract_stat(title + " " + summary)
+    stat_value_early, stat_label_early = _extract_stat(title + " " + summary, story_body=sentences)
 
     # what_happened: 2-3 bullets from actual summary sentences (not title repeat)
     # Use sentences[0], [1], [2] from the summary — never repeat the headline
@@ -570,7 +678,7 @@ def _item_to_story(item: dict, story_index: int = 0) -> dict:
     # Ensure at least 2 bullets — derive a contextual one if summary is sparse
     if len(wh_pool) < 2:
         text_lower = (title + " " + summary).lower()
-        if stat_value_early != "AI":
+        if stat_value_early not in ("AI", "UPDATE"):
             wh_pool.append(f"{stat_label_early}: {stat_value_early}.")
         elif any(w in text_lower for w in ("launch", "release", "new", "introduce", "unveil")):
             wh_pool.append(f"The announcement signals {company}'s push to strengthen its AI position.")
@@ -742,10 +850,18 @@ def fetch_todays_stories(geo_quota: dict = None) -> list:
         # Filter AI-relevant; in single-region mode keep only items from the target region
         # that pass the relevance/skip filter (removes roundups, digests, etc.)
         if single_region:
-            ai_items = [
-                i for i in raw_items
-                if i.get("region_name") == single_region and _is_ai_relevant(i["title"], i["summary"])
-            ]
+            # Include items from the target region's feeds AND items from any feed
+            # that content-detection assigns to the target region
+            ai_items = []
+            for i in raw_items:
+                if not _is_ai_relevant(i["title"], i["summary"]):
+                    continue
+                feed_region   = i.get("region_name", "row")
+                content_region = _detect_region(i["title"], i["summary"], feed_region)
+                if feed_region == single_region or content_region == single_region:
+                    # Tag the item with the content-detected region so geo-select works
+                    i["region_name"] = single_region
+                    ai_items.append(i)
         else:
             ai_items = [i for i in raw_items if _is_ai_relevant(i["title"], i["summary"])]
         logger.info(f"[RSS] AI-relevant items: {len(ai_items)} / {len(raw_items)} total")
@@ -761,6 +877,15 @@ def fetch_todays_stories(geo_quota: dict = None) -> list:
         # Score each item
         for item in ai_items:
             item["score"] = _score_item(item["title"], item["summary"])
+
+        # Remove same-event duplicates (same company + same dollar figure in title)
+        before_event_dedup = len(ai_items)
+        ai_items = _dedup_same_event(ai_items)
+        logger.info(f"[RSS] Event dedup: {before_event_dedup} → {len(ai_items)} items")
+
+        # Cap at 2 stories per company so no single company dominates the video
+        ai_items = _cap_per_company(ai_items, max_per=2)
+        logger.info(f"[RSS] After company cap: {len(ai_items)} items")
 
         # Select geo-balanced 10
         selected = _select_geo_balanced(ai_items, quota)
